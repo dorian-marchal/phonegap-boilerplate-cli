@@ -1,9 +1,39 @@
 #!/bin/bash
 
-CURRENT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Load the local config file
+if [ -f "./dev-scripts/pb-config.sh" ]; then
+    . "./dev-scripts/pb-config.sh"
+else
+    echo "Error: pb must be run from the project root."
+    exit 1;
+fi
 
-# ask for pb-core repo
-. "${CURRENT_DIR}/dev-core.sh"
+# Get pb repo from git pb.repo config or ask the user if not set
+
+if [ -z "$(git config pb.repo)" ]; then
+
+    read -p "Enter core git repository (default: '$default_pb_repo'): " pb_repo; \
+
+    if [[ -z "$pb_repo" ]]; then
+        pb_repo="$default_pb_repo"
+    fi
+
+    git ls-remote --exit-code "$pb_repo" &> /dev/null
+
+    exit_code="$?"
+
+    if [ "$exit_code" -ne 0 ]; then
+        echo "Error $exit_code: Unable to join the repo '$pb_repo'"
+        exit 1;
+    fi
+
+    # Save the repo
+    git config --add pb.repo "$pb_repo"
+
+else
+    pb_repo=$(git config pb.repo)
+fi
+
 
 # Pull `pb-core/dev` on `pb-core` branch and push `pb-core` on `origin/pb-core`
 if [ "$1" = "update" ]; then
