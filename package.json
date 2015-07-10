@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/dorian-marchal/phonegap-boilerplate-cli/issues"
   },
-  "homepage": "https://github.com/dorian-marchal/phonegap-boilerplate-cli#readme"
+  "homepage": "https://github.com/dorian-marchal/phonegap-boilerplate-cli#readme",
+  "dependencies": {
+    "nodegit": "^0.4.1"
+  }
 }
