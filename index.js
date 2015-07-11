@@ -31,4 +31,7 @@ module.exports = {
   merge: function() {
 
   },
+  push: function() {
+
+  },
 };
