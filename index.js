@@ -1,15 +1,15 @@
 'use strict';
 
 var options = {
-    repository: 'https://github.com/dorian-marchal/phonegap-boilerplate',
-    branch: 'master',
+  repository: 'https://github.com/dorian-marchal/phonegap-boilerplate',
+  branch: 'master',
 };
 
 /**
  * Check that the cli is used in a phonegap boilerplate project
  * @return {bool} true if we are in a pb project, else otherwise
  */
-var checkWorkingDirectory = function () {
+var checkWorkingDirectory = function() {
 
 };
 
@@ -17,18 +17,18 @@ var checkWorkingDirectory = function () {
  * Load the configuration from the config file.
  * Prompt the user to fille the configuration file if it's missing.
  */
-var loadConfig = function () {
+var loadConfig = function() {
 
 };
 
 module.exports = {
-    fetch: function () {
+  fetch: function() {
 
-    },
-    update: function () {
+  },
+  update: function() {
 
-    },
-    merge: function () {
+  },
+  merge: function() {
 
-    },
+  },
 };
