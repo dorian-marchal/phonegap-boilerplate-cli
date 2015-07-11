@@ -15,15 +15,15 @@ var checkWorkingDirectory = function() {
 
 /**
  * Load the configuration from the config file.
- * Prompt the user to fille the configuration file if it's missing.
+ * Prompt the user to fill the configuration file if it's missing.
  */
 var loadConfig = function() {
-
+  var config = require('./config.json');
 };
 
 module.exports = {
   fetch: function() {
-
+    loadConfig();
   },
   update: function() {
 
