@@ -15,8 +15,8 @@ var PhonegapBoilerplate = function(workingDirectory) {
 PhonegapBoilerplate.prototype = {
   constructor: PhonegapBoilerplate,
 
+  configFile: 'pb-config.json',
   options: {
-    configFile: 'pb-config.json',
     repository: 'https://github.com/dorian-marchal/phonegap-boilerplate',
     branch: 'master',
   },
@@ -25,6 +25,14 @@ PhonegapBoilerplate.prototype = {
 
   setWorkingDirectory: function(workingDirectory) {
     this.workingDirectory = workingDirectory;
+  },
+
+  /**
+   * Set the config file path
+   * @param {String} configFile path relative to the working directory
+   */
+  setConfigFile: function(configFile) {
+    this.configFile = configFile;
   },
 
   /**
@@ -43,7 +51,7 @@ PhonegapBoilerplate.prototype = {
     var that = this;
     done = done || function() {};
 
-    var filePath = this.workingDirectory + '/' + this.options.configFile;
+    var filePath = this.workingDirectory + '/' + this.configFile;
 
     // Read from the config file
     fs.open(filePath, 'r', function(err) {
@@ -63,7 +71,7 @@ PhonegapBoilerplate.prototype = {
           done();
         }
         catch (err) {
-          throw err;
+          throw 'Bad config file formatting: ' + err;
         }
       }
     });
@@ -106,15 +114,26 @@ PhonegapBoilerplate.prototype = {
    * Persist current options in the config file
    */
   saveOptions: function(done) {
+
+    var that = this;
     done = done || function() {};
 
-    var filePath = this.workingDirectory + '/' + this.options.configFile;
+    var filePath = this.workingDirectory + '/' + this.configFile;
 
-    fs.open(filePath, 'w', function(err) {
+    fs.open(filePath, 'w', function(err, fd) {
       if (err) {
         throw err;
       } else {
-        done();
+        fs.write(fd, JSON.stringify(that.options, null, '  '), function(err) {
+          if (err) {
+            throw 'Error writing config file: ' + err;
+          }
+
+          fs.close(fd, function() {
+            console.log('Config file written in: ' + filePath);
+            done();
+          });
+        });
       }
     });
   },
