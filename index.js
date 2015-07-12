@@ -44,7 +44,7 @@ PhonegapBoilerplate.prototype = {
 
   /**
    * Load the configuration from the config file.
-   * Prompt the user to fill the configuration file if it's missing.
+   * Prompt the user to fill the configuration file if it's missing and save it.
    */
   loadConfig: function(done) {
 
@@ -57,11 +57,7 @@ PhonegapBoilerplate.prototype = {
     fs.open(filePath, 'r', function(err) {
       // If the file doesn't exist, create it
       if (err) {
-        that.promptConfig(function(options) {
-          that.setOptions(options);
-          that.saveOptions();
-          done();
-        });
+        done(err);
       // else, read it
       } else {
         var userOptions;
@@ -71,7 +67,7 @@ PhonegapBoilerplate.prototype = {
           done();
         }
         catch (err) {
-          throw 'Bad config file formatting: ' + err;
+          done('Bad config file formatting: ' + err);
         }
       }
     });
@@ -136,6 +132,23 @@ PhonegapBoilerplate.prototype = {
         });
       }
     });
+  },
+
+  /**
+   * Prompt the user, asking for configuration vars and save current options.
+   */
+  promptReconfigure: function(done) {
+
+    var that = this;
+    done = done || function() {};
+
+    this.loadConfig(function() {
+      that.promptConfig(function(options) {
+        that.setOptions(options);
+        that.saveOptions(done);
+      });
+    });
+
   },
 
   /**
