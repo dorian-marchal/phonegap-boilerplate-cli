@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/dorian-marchal/phonegap-boilerplate-cli#readme",
   "dependencies": {
+    "extend": "^3.0.0",
     "nodegit": "^0.4.1"
   }
 }

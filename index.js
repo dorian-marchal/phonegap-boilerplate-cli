@@ -1,5 +1,7 @@
 'use strict';
 
+var extend = require('extend');
+
 var PhonegapBoilerplate = function() {
   this.loadConfig();
 };
@@ -17,7 +19,8 @@ PhonegapBoilerplate.prototype = {
    * Prompt the user to fill the configuration file if it's missing.
    */
   loadConfig: function() {
-    this.options = require('./pb-config.json');
+    var userOptions = require('./pb-config.json');
+    extend(this.options, userOptions);
   },
 
   /**
