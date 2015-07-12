@@ -17,7 +17,7 @@ PhonegapBoilerplate.prototype = {
    * Prompt the user to fill the configuration file if it's missing.
    */
   loadConfig: function() {
-    this.options = require('./config.json');
+    this.options = require('./pb-config.json');
   },
 
   /**
