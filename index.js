@@ -75,7 +75,31 @@ PhonegapBoilerplate.prototype = {
    */
   promptConfig: function(done) {
     done = done || function() {};
-    done({});
+
+    var prompt = require('prompt');
+    prompt.message = '- ';
+    prompt.delimiter = '';
+
+    var schema = [
+      {
+        name: 'repository',
+        default: this.options.repository,
+        description: 'Phonegap Boilerlate remote repository:',
+      },
+      {
+        name: 'branch',
+        default: this.options.branch,
+        description: 'Remote Phonegap Boilerplate branch:',
+      },
+    ];
+
+    prompt.get(schema, function(err, userConfig) {
+      if (err) {
+        console.error('\nError: a config file must be created before using pb');
+        process.exit();
+      }
+      done(userConfig);
+    });
   },
 
   /**
