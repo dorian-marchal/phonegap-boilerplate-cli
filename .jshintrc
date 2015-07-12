@@ -1,0 +1,14 @@
+{
+    "node" : true,
+    "globalstrict": true,
+    "esnext": true,
+    "futurehostile": true,
+    "latedef": true,
+    "nonbsp": true,
+    "quotmark": "single",
+    "curly": true,
+    "undef": true,
+    "unused": true,
+    "globals": {
+    }
+}
