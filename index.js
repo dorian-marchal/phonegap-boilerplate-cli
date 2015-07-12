@@ -49,14 +49,22 @@ PhonegapBoilerplate.prototype = {
     fs.open(filePath, 'r', function(err) {
       // If the file doesn't exist, create it
       if (err) {
-        that.promptConfig(function() {
+        that.promptConfig(function(options) {
+          that.setOptions(options);
+          that.saveOptions();
           done();
         });
-      // else, read from it
+      // else, read it
       } else {
-        var userOptions = require('./' + that.options.configFile);
-        that.setOptions(userOptions);
-        done();
+        var userOptions;
+        try {
+          userOptions = require(filePath);
+          that.setOptions(userOptions);
+          done();
+        }
+        catch (err) {
+          throw err;
+        }
       }
     });
   },
@@ -67,8 +75,24 @@ PhonegapBoilerplate.prototype = {
    */
   promptConfig: function(done) {
     done = done || function() {};
-    console.log('prompt');
-    done();
+    done({});
+  },
+
+  /**
+   * Persist current options in the config file
+   */
+  saveOptions: function(done) {
+    done = done || function() {};
+
+    var filePath = this.workingDirectory + '/' + this.options.configFile;
+
+    fs.open(filePath, 'w', function(err) {
+      if (err) {
+        throw err;
+      } else {
+        done();
+      }
+    });
   },
 
   /**
