@@ -159,6 +159,13 @@ PhonegapBoilerplate.prototype = {
   },
 
   /**
+   * verify that the pb remote exists
+   */
+  checkRemote: function() {
+
+  },
+
+  /**
    * Fetch from the pb-core remote
    */
   fetch: function() {
