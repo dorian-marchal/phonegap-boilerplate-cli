@@ -2,5 +2,5 @@
 'use strict';
 
 var PhonegapBoilerplate = require('../index.js');
-var pb = new PhonegapBoilerplate();
-pb.loadConfig();
+var pb = new PhonegapBoilerplate('/tmp/toast');
+pb.config.loadConfig();
