@@ -3,6 +3,7 @@
 var fs = require('fs');
 var async = require('async');
 var ConfigManager = require('./ConfigManager');
+var Git = require('./GitHelper');
 
 var PhonegapBoilerplate = function(workingDirectory) {
 
@@ -46,7 +47,9 @@ PhonegapBoilerplate.prototype = {
         that.checkPath(that.workingDirectory + '/config.xml', 'file', done);
       },
       'pb-core': function(done) {
-        done();
+        Git.localBranchExists(that.workingDirectory, 'pb-core', function(exists) {
+          done(exists ? null : 'The `pb-core` branch doesn\'t exist.');
+        });
       },
       '/.cordova': function(done) {
         that.checkPath(that.workingDirectory + '/.cordova', 'directory', done);
@@ -76,7 +79,7 @@ PhonegapBoilerplate.prototype = {
           (type === 'file' && stats.isFile())) {
         done();
       } else {
-        done(path + ' is not a ' + type + '.');
+        done('`' + path + '` is not a ' + type + '.');
       }
     }
     catch (err) {
