@@ -5,6 +5,9 @@ var async = require('async');
 var ConfigManager = require('./ConfigManager');
 var Git = require('./GitHelper');
 var chalk = require('chalk');
+var prompt = require('prompt');
+prompt.message = '- ';
+prompt.delimiter = '';
 
 var PhonegapBoilerplate = function(workingDirectory) {
 
@@ -150,7 +153,27 @@ PhonegapBoilerplate.prototype = {
    * Merge the pb-core branch in the current branch
    */
   merge: function() {
-    this.loadAndCheckConfig();
+    var that = this;
+
+    this.loadAndCheckConfig(function() {
+
+      Git.getCurrentBranch(that.workingDirectory, function(branchName) {
+        var schema = [{
+          name: 'merge',
+          default: 'y/N',
+          description: 'Merge `pb-core` on `' + branchName + '` ?',
+        }];
+
+        prompt.get(schema, function(err, res) {
+          if (!res || res.merge.toLowerCase() !== 'y') {
+            console.log('Merge aborted.');
+          } else {
+            console.log(chalk.blue('Merging `pb-core` on `' + branchName + '`...'));
+            Git.mergeBranch(that.workingDirectory, 'pb-core');
+          }
+        });
+      });
+    });
   },
 
   /**

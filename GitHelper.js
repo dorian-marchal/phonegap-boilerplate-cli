@@ -23,6 +23,15 @@ module.exports = {
     });
   },
 
+  getCurrentBranch: function(localRepositoryPath, done) {
+    done = done || function() {};
+    var revParse = 'git rev-parse --abbrev-ref HEAD';
+
+    exec(revParse, function(err, stdout) {
+      done(err ? null : stdout.trim());
+    });
+  },
+
   /**
    * @param {Function} done Called with true/false
    */
@@ -42,6 +51,22 @@ module.exports = {
     var fetch = 'git fetch "' + remoteName + '"';
 
     exec(cd  + ' && ' + fetch, function(err, stdout, stderr) {
+      if (stdout) {
+        console.log(stdout);
+      }
+      if (stderr) {
+        console.log(stderr);
+      }
+      done(err);
+    });
+  },
+
+  mergeBranch: function(localRepositoryPath, branchName, commit, done) {
+    done = done || function() {};
+    var cd = 'cd "' + localRepositoryPath + '"';
+    var merge = 'git merge ' + (!commit ? '--no-commit' : '') + ' "' + branchName + '"';
+
+    exec(cd  + ' && ' + merge, function(err, stdout, stderr) {
       if (stdout) {
         console.log(stdout);
       }
