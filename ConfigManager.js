@@ -56,13 +56,14 @@ ConfigManager.prototype = {
         var userOptions;
         try {
           userOptions = require(filePath);
-          done(null, userOptions);
+          this._mergeOptions(userOptions);
+          done(null);
         }
         catch (err) {
           done('Bad config file formatting: ' + err);
         }
       }
-    });
+    }.bind(this));
   },
 
   /**
@@ -91,7 +92,7 @@ ConfigManager.prototype = {
 
     prompt.get(schema, function(err, userConfig) {
       if (err) {
-        console.error('\nThe config file has not been created.');
+        console.error('\nThe config file has not been created.\n');
         process.exit();
       }
       done(userConfig);
@@ -129,10 +130,7 @@ ConfigManager.prototype = {
   reconfigure: function(done) {
     done = done || function() {};
 
-    this._loadConfigFromFile(function(err, options) {
-      if (!err) {
-        this._mergeOptions(options);
-      }
+    this._loadConfigFromFile(function() {
       this._loadConfigFromPromptAndSave(done);
     }.bind(this));
   },
@@ -155,7 +153,7 @@ ConfigManager.prototype = {
           }
 
           fs.close(fd, function() {
-            console.log('Config file written in: ' + that.getConfigFilePath());
+            console.log('Config file written in: ' + that.getConfigFilePath() + '\n');
             done();
           });
         });

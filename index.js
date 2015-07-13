@@ -157,9 +157,24 @@ PhonegapBoilerplate.prototype = {
    * Push the current branch on the pb-core remote branch
    */
   push: function() {
-    this.loadAndCheckConfig();
+    var that = this;
+
+    this.loadAndCheckConfig(function() {
+      console.log(chalk.blue('Pushing `pb-core` on `pb-core:dev`...'));
+      Git.pushBranch(that.workingDirectory, 'pb-core', 'pb-core', that.config.options.branch,
+          function(err) {
+            if (!err) {
+              console.log(chalk.blue('Pushing `pb-core` on `origin:pb-core`...'));
+              Git.pushBranch(that.workingDirectory, 'pb-core', 'origin', 'pb-core');
+            }
+          }
+      );
+    });
   },
 
+  /**
+   * Prompt for creating pb-config.json file
+   */
   reconfigure: function() {
     this.config.reconfigure();
   },

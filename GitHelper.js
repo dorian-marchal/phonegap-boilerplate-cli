@@ -52,4 +52,27 @@ module.exports = {
     });
   },
 
+  pushBranch: function(localRepositoryPath, localbranchName, remoteName, remoteBranchName, done) {
+    done = done || function() {};
+    var cd = 'cd "' + localRepositoryPath + '"';
+    var push = 'git push "' + remoteName + '" "' + localbranchName + ':' + remoteBranchName + '"';
+
+    exec(cd  + ' && ' + push, function(err, stdout, stderr) {
+      if (stdout) {
+        console.log(stdout);
+      }
+      if (stderr) {
+        console.log(stderr);
+      }
+      done(err);
+    });
+  },
+
+  /**
+   * Check if a repo is in a clean state
+   * @param {Function} done Called with true/false
+   */
+  isRepositoryClean: function(localRepositoryPath, done) {
+  },
+
 };
