@@ -21,4 +21,18 @@ module.exports = {
       callback(!err);
     });
   },
+
+  /**
+   * @param {Function} callback Called with true/false
+   */
+  remoteBranchExists: function(remoteRepositoryPath, branchName, callback) {
+    var lsRemote = 'git ls-remote --heads "' + remoteRepositoryPath + '"';
+    var grep = 'grep "refs/heads/' + branchName + '$"';
+
+    exec(lsRemote + ' | ' + grep, function(err, stdout) {
+      console.log(stdout);
+      callback(!!stdout);
+    });
+  },
+
 };

@@ -88,9 +88,14 @@ PhonegapBoilerplate.prototype = {
   },
 
   /**
-   * verify that the pb remote exists
+   * verify that the pb remote branch exists
    */
-  checkRemote: function() {
+  checkRemote: function(done) {
+    Git.remoteBranchExists(this.config.options.repository, this.config.options.branch,
+      function(exists) {
+        done(exists);
+      }
+    );
   },
 
   /**
