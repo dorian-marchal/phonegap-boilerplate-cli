@@ -4,6 +4,7 @@ var fs = require('fs');
 var async = require('async');
 var ConfigManager = require('./ConfigManager');
 var Git = require('./GitHelper');
+var chalk = require('chalk');
 
 var PhonegapBoilerplate = function(workingDirectory) {
 
@@ -128,7 +129,14 @@ PhonegapBoilerplate.prototype = {
    * Fetch from the pb-core remote
    */
   fetch: function() {
-    this.loadAndCheckConfig();
+    this.loadAndCheckConfig(function() {
+      console.log(chalk.blue('Fetching `pb-core` remote...'));
+      Git.fetchRemote(this.workingDirectory, 'pb-core', function(err) {
+        if (err) {
+          console.error(err.message);
+        }
+      });
+    }.bind(this));
   },
 
   /**

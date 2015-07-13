@@ -24,6 +24,7 @@
   "homepage": "https://github.com/dorian-marchal/phonegap-boilerplate-cli#readme",
   "dependencies": {
     "async": "^1.3.0",
+    "chalk": "^1.1.0",
     "extend": "^3.0.0",
     "prompt": "^0.2.14"
   }
