@@ -98,32 +98,62 @@ PhonegapBoilerplate.prototype = {
     );
   },
 
+  loadAndCheckConfig: function(done) {
+    var that = this;
+    done = done || function() {};
+
+    this.config.loadConfig(function(err) {
+      if (err) {
+        console.error('Error: loading config: ' + err);
+        process.exit();
+      }
+      that.checkWorkingDirectory(function(err) {
+        if (err) {
+          console.error('Error: Not in a Phonegap Boilerlate project: ' + err);
+          process.exit();
+        }
+        that.checkRemote(function(exists) {
+          if (!exists) {
+            console.error('Error: The remote branch does not exist: ' +
+                this.config.options.repository + '(' + this.config.options.branch + ')');
+            process.exit();
+          }
+          done();
+        });
+      });
+    });
+  },
+
   /**
    * Fetch from the pb-core remote
    */
   fetch: function() {
-    this.checkWorkingDirectory();
+    this.loadAndCheckConfig();
   },
 
   /**
    * Pull from the pb-core remote in the pb-core branch
    */
   update: function() {
-    this.checkWorkingDirectory();
+    this.loadAndCheckConfig();
   },
 
   /**
    * Merge the pb-core branch in the current branch
    */
   merge: function() {
-    this.checkWorkingDirectory();
+    this.loadAndCheckConfig();
   },
 
   /**
    * Push the current branch on the pb-core remote branch
    */
   push: function() {
-    this.checkWorkingDirectory();
+    this.loadAndCheckConfig();
+  },
+
+  reconfigure: function() {
+    this.config.reconfigure();
   },
 };
 

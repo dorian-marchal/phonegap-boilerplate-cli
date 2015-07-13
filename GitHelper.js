@@ -30,7 +30,6 @@ module.exports = {
     var grep = 'grep "refs/heads/' + branchName + '$"';
 
     exec(lsRemote + ' | ' + grep, function(err, stdout) {
-      console.log(stdout);
       callback(!!stdout);
     });
   },
