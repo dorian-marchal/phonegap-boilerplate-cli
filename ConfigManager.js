@@ -22,7 +22,7 @@ ConfigManager.prototype = {
   /**
    * Merge the given options into this.options
    */
-  mergeOptions: function(options) {
+  _mergeOptions: function(options) {
     extend(this.options, options);
   },
 
@@ -40,9 +40,8 @@ ConfigManager.prototype = {
 
   /**
    * Load the configuration from the config file.
-   * Prompt the user to fill the configuration file if it's missing and save it.
    */
-  loadConfig: function(done) {
+  _loadConfigFromFile: function(done) {
 
     done = done || function() {};
     var filePath = this.getConfigFilePath();
@@ -57,7 +56,7 @@ ConfigManager.prototype = {
         var userOptions;
         try {
           userOptions = require(filePath);
-          done(userOptions);
+          done(null, userOptions);
         }
         catch (err) {
           done('Bad config file formatting: ' + err);
@@ -70,7 +69,7 @@ ConfigManager.prototype = {
    * Prompt the user, asking for configuration vars
    * @param {function} done Called with the config object when done
    */
-  promptConfig: function(done) {
+  _getConfigFromPrompt: function(done) {
     done = done || function() {};
 
     var prompt = require('prompt');
@@ -92,7 +91,7 @@ ConfigManager.prototype = {
 
     prompt.get(schema, function(err, userConfig) {
       if (err) {
-        console.error('\nError: a config file must be created before using pb');
+        console.error('\nThe config file has not been created.');
         process.exit();
       }
       done(userConfig);
@@ -100,9 +99,48 @@ ConfigManager.prototype = {
   },
 
   /**
+   * Prompt for config and save options in config file
+   */
+  _loadConfigFromPromptAndSave: function(done) {
+    this._getConfigFromPrompt(function(options) {
+      this._mergeOptions(options);
+      this._saveConfigFile(done);
+    }.bind(this));
+  },
+
+  /**
+   * Try to load the config file, prompt the user in case of error
+   */
+  loadConfig: function(done) {
+    done = done || function() {};
+
+    this._loadConfigFromFile(function(err) {
+      if (err) {
+        this._loadConfigFromPromptAndSave(done);
+      } else {
+        done();
+      }
+    }.bind(this));
+  },
+
+  /**
+   * Prompt the user, asking for configuration vars and save current options.
+   */
+  reconfigure: function(done) {
+    done = done || function() {};
+
+    this._loadConfigFromFile(function(err, options) {
+      if (!err) {
+        this._mergeOptions(options);
+      }
+      this._loadConfigFromPromptAndSave(done);
+    }.bind(this));
+  },
+
+  /**
    * Persist current options in the config file
    */
-  saveOptions: function(done) {
+  _saveConfigFile: function(done) {
 
     var that = this;
     done = done || function() {};
@@ -122,22 +160,6 @@ ConfigManager.prototype = {
           });
         });
       }
-    });
-  },
-
-  /**
-   * Prompt the user, asking for configuration vars and save current options.
-   */
-  promptReconfigure: function(done) {
-
-    var that = this;
-    done = done || function() {};
-
-    this.loadConfig(function() {
-      that.promptConfig(function(options) {
-        that.mergeOptions(options);
-        that.saveOptions(done);
-      });
     });
   },
 
