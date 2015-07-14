@@ -11,7 +11,6 @@ ConfigManager.prototype = {
   constructor: ConfigManager,
   configFile: 'pb-config.json',
   options: {
-    repository: 'https://github.com/dorian-marchal/phonegap-boilerplate',
     branch: 'master',
   },
 
@@ -111,15 +110,19 @@ ConfigManager.prototype = {
 
   /**
    * Try to load the config file, prompt the user in case of error
+   * @param {function} done Called with 'file' if the config is loaded from a
+   *                        file, or 'prompt' from the prompt
    */
   loadConfig: function(done) {
     done = done || function() {};
 
     this._loadConfigFromFile(function(err) {
       if (err) {
-        this._loadConfigFromPromptAndSave(done);
+        this._loadConfigFromPromptAndSave(function() {
+          done('prompt')
+        });
       } else {
-        done();
+        done('file');
       }
     }.bind(this));
   },

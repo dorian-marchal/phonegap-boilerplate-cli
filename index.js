@@ -26,6 +26,7 @@ PhonegapBoilerplate.prototype = {
   config: null,
 
   workingDirectory: null,
+  projectType: null, // 'client' or 'server'
 
   setWorkingDirectory: function(workingDirectory) {
     this.workingDirectory = workingDirectory;
@@ -33,16 +34,15 @@ PhonegapBoilerplate.prototype = {
   },
 
   /**
-   * Check that the cli is used in a phonegap boilerplate project
+   * Check that the cli is used in a phonegap boilerplate client project
    * These points are checked :
-   * - presence of '/config.xml'
-   * - presence of a 'pb-core' branch pointing to the configured remote branch
-   * - presence of a '/.cordova' directory
-   * - presence of a '/www/cordova.js' file
+   *   - presence of '/config.xml'
+   *   - presence of a '/www/cordova.js' file
+   *   - presence of a '/.cordova' directory
+   *   - presence of a 'pb-core' branch pointing to the configured remote branch
    * @param {function} done Called with err if we are not in a pb project
    */
-  checkWorkingDirectory: function(doneChecking) {
-
+  checkClientWorkingDirectory: function(doneChecking) {
     var that = this;
     doneChecking = doneChecking || function() {};
 
@@ -50,16 +50,16 @@ PhonegapBoilerplate.prototype = {
       '/config.xml': function(done) {
         that.checkPath(that.workingDirectory + '/config.xml', 'file', done);
       },
-      'pb-core': function(done) {
-        Git.localBranchExists(that.workingDirectory, 'pb-core', function(exists) {
-          done(exists ? null : 'The `pb-core` branch doesn\'t exist.');
-        });
+      '/www/cordova.js': function(done) {
+        that.checkPath(that.workingDirectory + '/www/cordova.js', 'file', done);
       },
       '/.cordova': function(done) {
         that.checkPath(that.workingDirectory + '/.cordova', 'directory', done);
       },
-      '/www/cordova.js': function(done) {
-        that.checkPath(that.workingDirectory + '/www/cordova.js', 'file', done);
+      'pb-core': function(done) {
+        Git.localBranchExists(that.workingDirectory, 'pb-core', function(exists) {
+          done(exists ? null : 'The `pb-core` branch doesn\'t exist.');
+        });
       },
     };
 
@@ -68,6 +68,72 @@ PhonegapBoilerplate.prototype = {
         doneChecking(err);
       } else {
         doneChecking();
+      }
+    });
+  },
+
+
+  /**
+   * Check that the cli is used in a phonegap boilerplate server project
+   * These points are checked :
+   *   - presence of '/core/RestServer.js'
+   *   - presence of '/core/server_modules'
+   *   - presence of a 'pb-core' branch pointing to the configured remote branch
+   * @param {function} done Called with err if we are not in a pb project
+   */
+  checkServerWorkingDirectory: function(doneChecking) {
+    var that = this;
+    doneChecking = doneChecking || function() {};
+
+    var checks = {
+      '/version.json': function(done) {
+        that.checkPath(that.workingDirectory + '/version.json', 'file', done);
+      },
+      '/core/RestServer.js': function(done) {
+        that.checkPath(that.workingDirectory + '/core/RestServer.js', 'file', done);
+      },
+      '/core/server_modules': function(done) {
+        that.checkPath(that.workingDirectory + '/core/server_modules', 'directory', done);
+      },
+      'pb-core': function(done) {
+        Git.localBranchExists(that.workingDirectory, 'pb-core', function(exists) {
+          done(exists ? null : 'The `pb-core` branch doesn\'t exist.');
+        });
+      },
+    };
+
+    async.parallel(checks, function(err) {
+      if (err) {
+        doneChecking(err);
+      } else {
+        doneChecking();
+      }
+    });
+  },
+
+  /**
+   * Check that the cli is used in a phonegap boilerplate project
+   * @param {function} doneChecking (err, type) where type = 'client' | 'server'
+   */
+  checkWorkingDirectory: function(doneChecking) {
+
+    var that = this;
+    doneChecking = doneChecking || function() {};
+
+    this.checkClientWorkingDirectory(function(errClient) {
+      if (errClient) {
+        that.checkServerWorkingDirectory(function(errServer) {
+          if (errServer) {
+            doneChecking(
+              '\nNot on a client project: ' + errClient +
+              '\nNor on a server project: ' + errServer
+            );
+          } else {
+            doneChecking(null, 'server');
+          }
+        });
+      } else {
+        doneChecking(null, 'client');
       }
     });
   },
@@ -106,24 +172,39 @@ PhonegapBoilerplate.prototype = {
     var that = this;
     done = done || function() {};
 
-    this.config.loadConfig(function(err) {
+    this.checkWorkingDirectory(function(err, projectType) {
       if (err) {
-        console.error('Error: loading config: ' + err);
+        console.error(chalk.red('Not in a Phonegap Boilerlate project: ') + err);
         process.exit();
       }
-      that.checkWorkingDirectory(function(err) {
-        if (err) {
-          console.error(chalk.red('Not in a Phonegap Boilerlate project: ') + err);
-          process.exit();
-        }
-        that.checkRemote(function(exists) {
-          if (!exists) {
-            console.error('Error: The remote branch does not exist: ' +
-                this.config.options.repository + '(' + this.config.options.branch + ')');
-            process.exit();
-          }
-          done();
+
+      // If in a Phonegap Boilerplate project, set default options
+      that.projectType = projectType;
+      if (projectType === 'client') {
+        that.config._mergeOptions({
+          repository: 'https://github.com/dorian-marchal/phonegap-boilerplate',
         });
+      } else if (projectType === 'server') {
+        that.config._mergeOptions({
+          repository: 'https://github.com/dorian-marchal/phonegap-boilerplate-server',
+        });
+      }
+
+      that.config.loadConfig(function(type) {
+        // If the config is loaded from the prompt, check its validity
+        if (type === 'prompt') {
+          console.log(chalk.blue('Verifying remote...'));
+          that.checkRemote(function(exists) {
+            if (!exists) {
+              console.error(chalk.red('Error: The remote branch does not exist: ') +
+                  '`' + that.config.options.branch + '` on ' + that.config.options.repository);
+              process.exit();
+            }
+            done();
+          });
+        } else {
+          done();
+        }
       });
     });
   },
