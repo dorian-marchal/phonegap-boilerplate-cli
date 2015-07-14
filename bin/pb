@@ -1,6 +1,38 @@
 #!/usr/bin/env node
 'use strict';
 
+var chalk = require('chalk');
+var argv = require('minimist')(process.argv.slice(2));
+var command = argv._[0];
+
 var PhonegapBoilerplate = require('../index.js');
-var pb = new PhonegapBoilerplate('/tmp/toast');
-pb.config.loadConfig();
+var pb = new PhonegapBoilerplate(process.cwd());
+
+switch (command) {
+  case 'reconfigure':
+    pb.reconfigure();
+    break;
+  case 'fetch':
+    pb.fetch();
+    break;
+  case 'merge':
+    pb.merge();
+    break;
+  case 'update':
+    pb.update();
+    break;
+  case 'push':
+    pb.push();
+    break;
+  default:
+    console.log(chalk.blue('Usage:'));
+    console.log(chalk.gray('* ' + chalk.white('pb fetch') + ': fetch the pb-core remote'));
+    console.log(chalk.gray('* ' + chalk.white('pb update') + ' (on the `pb-core` ' +
+        'branch): pulls the changes and pushes them on `origin`'));
+    console.log(chalk.gray('* ' + chalk.white('pb merge') + ' (on the target branch): ' +
+        'merges in the branch pb-core'));
+    console.log(chalk.gray('* ' + chalk.white('pb push') + ' (on the `pb-core` branch): ' +
+        'pushes the changes on `origin/pb-core` and `pb-core/dev`'));
+    console.log(chalk.gray('* ' + chalk.white('pb reconfigure') + ': edit the pb configuration'));
+    break;
+}
