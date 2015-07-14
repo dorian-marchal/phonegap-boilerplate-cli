@@ -86,6 +86,9 @@ PhonegapBoilerplate.prototype = {
     doneChecking = doneChecking || function() {};
 
     var checks = {
+      '/version.json': function(done) {
+        that.checkPath(that.workingDirectory + '/version.json', 'file', done);
+      },
       '/core/RestServer.js': function(done) {
         that.checkPath(that.workingDirectory + '/core/RestServer.js', 'file', done);
       },
