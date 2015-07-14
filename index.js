@@ -187,20 +187,21 @@ PhonegapBoilerplate.prototype = {
         });
       }
 
-      that.config.loadConfig(function(err) {
-        if (err) {
-          console.error('Error: loading config: ' + err);
-          process.exit();
-        }
-
-        that.checkRemote(function(exists) {
-          if (!exists) {
-            console.error('Error: The remote branch does not exist: ' +
-                this.config.options.repository + '(' + this.config.options.branch + ')');
-            process.exit();
-          }
+      that.config.loadConfig(function(type) {
+        // If the config is loaded from the prompt, check its validity
+        if (type === 'prompt') {
+          console.log(chalk.blue('Verifying remote...'));
+          that.checkRemote(function(exists) {
+            if (!exists) {
+              console.error(chalk.red('Error: The remote branch does not exist: ') +
+                  '`' + that.config.options.branch + '` on ' + that.config.options.repository);
+              process.exit();
+            }
+            done();
+          });
+        } else {
           done();
-        });
+        }
       });
     });
   },
