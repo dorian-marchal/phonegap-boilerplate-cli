@@ -113,7 +113,7 @@ PhonegapBoilerplate.prototype = {
       }
       that.checkWorkingDirectory(function(err) {
         if (err) {
-          console.error('Error: Not in a Phonegap Boilerlate project: ' + err);
+          console.error(chalk.red('Not in a Phonegap Boilerlate project: ') + err);
           process.exit();
         }
         that.checkRemote(function(exists) {
@@ -146,7 +146,60 @@ PhonegapBoilerplate.prototype = {
    * Pull from the pb-core remote in the pb-core branch
    */
   update: function() {
-    this.loadAndCheckConfig();
+    var that = this;
+
+    this.loadAndCheckConfig(function() {
+      Git.getCurrentBranch(that.workingDirectory, function(branchName) {
+        // test if we are on `pb-core` branch
+        if (branchName !== 'pb-core') {
+          console.log(chalk.red('Error: Not on branch `pb-core`.'));
+          process.exit();
+        }
+
+        console.log(chalk.blue('Pulling `pb-core/' + that.config.options.branch + '`...'));
+
+        // Create a backup tag
+        Git.git('tag pb-backup-before-update');
+
+        var revertAndExit = function() {
+          console.log(chalk.blue('\nReverting changes...'));
+          // Revert to the backup tag
+          Git.git('reset --hard pb-backup-before-update');
+          Git.git('tag -d pb-backup-before-update');
+          console.log('Update aborted.');
+          process.exit();
+        };
+
+        // Pull the modifications
+        try {
+          Git.git('pull --rebase pb-core ' + that.config.options.branch);
+        } catch (err) {
+          console.error(chalk.red(err.message));
+          revertAndExit();
+        }
+
+        var schema = [{
+          name: 'push',
+          default: 'Y/n',
+          description: '\nEverything went well ? Push on `origin` ?',
+        }];
+        //
+        prompt.get(schema, function(err, res) {
+          if (!res || res.push.toLowerCase() === 'n' || res.push.toLowerCase() === 'no') {
+            revertAndExit();
+          } else {
+            console.log(chalk.blue('\nPushing `pb-core` on `origin/pb-core`...'));
+            try {
+              Git.git('push origin pb-core');
+            } catch (err) {
+              revertAndExit();
+            }
+          }
+          // Remove the backup tag
+          Git.git('tag -d pb-backup-before-update');
+        });
+      });
+    });
   },
 
   /**

@@ -7,6 +7,7 @@
 'use strict';
 
 var exec = require('child_process').exec;
+var execSync = require('child_process').execSync;
 
 module.exports = {
 
@@ -93,11 +94,9 @@ module.exports = {
     });
   },
 
-  /**
-   * Check if a repo is in a clean state
-   * @param {Function} done Called with true/false
-   */
-  isRepositoryClean: function(localRepositoryPath, done) {
-  },
+  // Execute a git command synchronously
+  git: function(command) {
+    return execSync('git ' + command);
+  }
 
 };
