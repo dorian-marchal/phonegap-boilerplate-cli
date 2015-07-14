@@ -169,18 +169,29 @@ PhonegapBoilerplate.prototype = {
     var that = this;
     done = done || function() {};
 
-    this.config.loadConfig(function(err) {
+    this.checkWorkingDirectory(function(err, projectType) {
       if (err) {
-        console.error('Error: loading config: ' + err);
+        console.error(chalk.red('Not in a Phonegap Boilerlate project: ') + err);
         process.exit();
       }
-      that.checkWorkingDirectory(function(err, projectType) {
+
+      // If in a Phonegap Boilerplate project, set default options
+      that.projectType = projectType;
+      if (projectType === 'client') {
+        that.config._mergeOptions({
+          repository: 'https://github.com/dorian-marchal/phonegap-boilerplate',
+        });
+      } else if (projectType === 'server') {
+        that.config._mergeOptions({
+          repository: 'https://github.com/dorian-marchal/phonegap-boilerplate-server',
+        });
+      }
+
+      that.config.loadConfig(function(err) {
         if (err) {
-          console.error(chalk.red('Not in a Phonegap Boilerlate project: ') + err);
+          console.error('Error: loading config: ' + err);
           process.exit();
         }
-
-        that.projectType = projectType;
 
         that.checkRemote(function(exists) {
           if (!exists) {

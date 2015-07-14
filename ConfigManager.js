@@ -11,7 +11,6 @@ ConfigManager.prototype = {
   constructor: ConfigManager,
   configFile: 'pb-config.json',
   options: {
-    repository: 'https://github.com/dorian-marchal/phonegap-boilerplate',
     branch: 'master',
   },
 
