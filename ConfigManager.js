@@ -91,7 +91,7 @@ ConfigManager.prototype = {
 
     prompt.get(schema, function(err, userConfig) {
       if (err) {
-        console.error('\nThe config file has not been created.\n');
+        console.error('\nThe config file has not been written.\n');
         process.exit();
       }
       done(userConfig);
