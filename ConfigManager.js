@@ -150,7 +150,7 @@ ConfigManager.prototype = {
       if (err) {
         throw err;
       } else {
-        var configBuffer = new Buffer(JSON.stringify(that.options, null, '  '));
+        var configBuffer = new Buffer(JSON.stringify(that.options, null, '  ') + '\n');
         fs.write(fd, configBuffer, 0, configBuffer.length, null, function(err) {
           if (err) {
             throw 'Error writing config file: ' + err;
