@@ -119,7 +119,7 @@ ConfigManager.prototype = {
     this._loadConfigFromFile(function(err) {
       if (err) {
         this._loadConfigFromPromptAndSave(function() {
-          done('prompt')
+          done('prompt');
         });
       } else {
         done('file');
@@ -150,7 +150,8 @@ ConfigManager.prototype = {
       if (err) {
         throw err;
       } else {
-        fs.write(fd, JSON.stringify(that.options, null, '  '), function(err) {
+        var configBuffer = new Buffer(JSON.stringify(that.options, null, '  '));
+        fs.write(fd, configBuffer, 0, configBuffer.length, null, function(err) {
           if (err) {
             throw 'Error writing config file: ' + err;
           }
