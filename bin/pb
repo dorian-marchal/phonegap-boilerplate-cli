@@ -13,14 +13,6 @@ switch (command) {
     pb.reconfigure();
     break;
   case 'create':
-    var projectSide = argv._[1];
-    var projectName = argv._[2];
-    if (!projectSide || !projectName) {
-      console.log(chalk.red('Usage:'));
-      console.log(chalk.gray('* ' + chalk.white('pb create [client|server] <project-name>') +
-          ': create a new Phonegap Boilerplate project'));
-      return;
-    }
     pb.create();
     break;
   case 'fetch':
@@ -37,8 +29,8 @@ switch (command) {
     break;
   default:
     console.log(chalk.blue('Usage:'));
-    console.log(chalk.gray('* ' + chalk.white('pb create [client|server] <project-name>') +
-        ': create a new Phonegap Boilerplate project'));
+    console.log(chalk.gray('* ' + chalk.white('pb create') +
+        ': create a new Phonegap Boilerplate project (client or server)'));
     console.log(chalk.gray('* ' + chalk.white('pb fetch') + ': fetch the pb-core remote'));
     console.log(chalk.gray('* ' + chalk.white('pb update') + ' (on the `pb-core` ' +
         'branch): pulls the changes and pushes them on `origin`'));
