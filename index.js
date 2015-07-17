@@ -210,6 +210,43 @@ PhonegapBoilerplate.prototype = {
   },
 
   /**
+   * Prompt the user for new project infos
+   */
+  createProjectPrompt: function(done) {
+    // Choose client or server
+    // Choose project name
+    // Choose folder name
+    // Choose repository
+    // Choose branch
+    // Create from existing repository
+  },
+
+  /**
+   * Create a new project
+   */
+  create: function() {
+    this.createProjectPrompt(function(err, newProjectInfos) {
+      if (err) {
+        console.log('Project creation aborted');
+        process.exit();
+      }
+
+      // Test if directory exist
+        // exit if exist
+        // else if existing repo : clone + backup default branch
+        // else create directory & init & first commit
+
+        // add remote pb-core
+        // create branch pb-core
+        // pull <remote>/<branch> in pb-core
+        // merge pb-core in master
+        // init & update submodule
+        // make install-dev
+        // duplicate config file and ask for updating them
+    });
+  },
+
+  /**
    * Fetch from the pb-core remote
    */
   fetch: function() {
