@@ -2,12 +2,16 @@
 
 var fs = require('fs');
 var async = require('async');
+var extend = require('extend');
 var ConfigManager = require('./ConfigManager');
 var Git = require('./GitHelper');
 var chalk = require('chalk');
 var prompt = require('prompt');
 prompt.message = '- ';
 prompt.delimiter = '';
+
+var defaultClientRepo = 'https://github.com/dorian-marchal/phonegap-boilerplate';
+var defaultServerRepo = 'https://github.com/dorian-marchal/phonegap-boilerplate-server';
 
 var PhonegapBoilerplate = function(workingDirectory) {
 
@@ -182,11 +186,11 @@ PhonegapBoilerplate.prototype = {
       that.projectType = projectType;
       if (projectType === 'client') {
         that.config._mergeOptions({
-          repository: 'https://github.com/dorian-marchal/phonegap-boilerplate',
+          repository: defaultClientRepo,
         });
       } else if (projectType === 'server') {
         that.config._mergeOptions({
-          repository: 'https://github.com/dorian-marchal/phonegap-boilerplate-server',
+          repository: defaultServerRepo,
         });
       }
 
@@ -213,21 +217,90 @@ PhonegapBoilerplate.prototype = {
    * Prompt the user for new project infos
    */
   createProjectPrompt: function(done) {
-    // Choose client or server
-    // Choose project name
-    // Choose folder name
-    // Choose repository
-    // Choose branch
-    // Create from existing repository
+
+    done = done || function() {};
+    var options = {};
+
+    prompt.get(
+      {
+        name: 'type',
+        default: 'client',
+        description: 'Type of repository (client|server):',
+        conform: function(type) {
+          return type === 'client' || type === 'server';
+        }
+      },
+      function(err, resType) {
+        if (err) {
+          return done(err);
+        }
+
+        extend(options, resType);
+
+        var schema = [
+          {
+            name: 'directoryName',
+            description: 'Directory name for the ' + resType.type + ':',
+            required: true,
+          },
+          {
+            name: 'pbRepository',
+            default: resType.type === 'client' ? defaultClientRepo : defaultServerRepo,
+            description: 'Phonegap Boilerplate repository:',
+          },
+          {
+            name: 'pbBranch',
+            default: 'master',
+            description: 'Phonegap Boilerplate branch ?',
+          },
+          {
+            name: 'existingRepository',
+            default: false,
+            type: 'boolean',
+            description: 'Clone the project from an existing empty repository ? ' +
+                '(if not, it will be created)',
+          },
+        ];
+
+        prompt.get(schema, function(err, resProject) {
+          if (err) {
+            return done(err);
+          }
+
+          extend(options, resProject);
+
+          if (resProject.existingRepository) {
+            prompt.get(
+              {
+                name: 'projectRepository',
+                required: true,
+                description: 'Project repository:',
+              },
+              function(err, resProjectRepo) {
+                if (err) {
+                  return done(err);
+                }
+
+                extend(options, resProjectRepo);
+
+                done(null, options);
+              }
+            );
+          } else {
+            done(null, options);
+          }
+        });
+      }
+    );
   },
 
   /**
    * Create a new project
    */
   create: function() {
-    this.createProjectPrompt(function(err, newProjectInfos) {
+    this.createProjectPrompt(function(err, projectOptions) {
       if (err) {
-        console.log('Project creation aborted');
+        console.log('\nProject creation aborted');
         process.exit();
       }
 
