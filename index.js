@@ -147,6 +147,7 @@ PhonegapBoilerplate.prototype = {
    * @param {function} done Called with a potential error in parameter
    */
   checkPath: function(path, type, done) {
+    type = type || '';
     try {
       var stats = fs.lstatSync(path);
       if ((type === 'directory' && stats.isDirectory()) ||
@@ -298,10 +299,34 @@ PhonegapBoilerplate.prototype = {
    * Create a new project
    */
   create: function() {
+    var that = this;
+
     this.createProjectPrompt(function(err, projectOptions) {
       if (err) {
         console.log('\nProject creation aborted');
         process.exit();
+      }
+
+      var createRepo = function() {
+        if (projectOptions.existingRepository) {
+          console.log(chalk.blue('Cloning project repository...'));
+          Git.git('clone ' + projectOptions.projectRepository + ' ' +
+              projectOptions.directoryName);
+          process.chdir(projectOptions.directoryName);
+        } else {
+          console.log(chalk.blue('Creating project repository...'));
+          fs.mkdirSync(that.workingDirectory + '/' + projectOptions.directoryName);
+          process.chdir(projectOptions.directoryName);
+          Git.git('init');
+        }
+      };
+
+      try {
+        createRepo();
+      }
+      catch (err) {
+        console.log(chalk.red('Error creating the repository: '));
+        throw err;
       }
 
       // Test if directory exist
@@ -316,6 +341,7 @@ PhonegapBoilerplate.prototype = {
         // init & update submodule
         // make install-dev
         // duplicate config file and ask for updating them
+        // create pb-config.json
     });
   },
 
