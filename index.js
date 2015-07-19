@@ -258,8 +258,8 @@ PhonegapBoilerplate.prototype = {
             name: 'existingRepository',
             default: false,
             type: 'boolean',
-            description: 'Clone the project from an existing empty repository ? ' +
-                '(if not, it will be created)',
+            description: 'Clone the project from an existing ' + chalk.bold('empty') +
+                ' repository ? (if not, it will be created)',
           },
         ];
 
@@ -301,6 +301,7 @@ PhonegapBoilerplate.prototype = {
   create: function() {
     var that = this;
 
+    // Prompt user for project config
     this.createProjectPrompt(function(err, projectOptions) {
       if (err) {
         console.log('\nProject creation aborted');
@@ -322,16 +323,25 @@ PhonegapBoilerplate.prototype = {
       };
 
       try {
+        // Create an empty repo for the project
         createRepo();
+
+        // Backup the current branch
+        Git.getCurrentBranch(process.cwd(), function(err, defaultProjectBranch) {
+          if (err) {
+            throw err;
+          }
+
+          // First commit
+          Git.git('commit --allow-empty -m "First commit"');
+
+        });
       }
       catch (err) {
         console.log(chalk.red('Error creating the repository: '));
         throw err;
       }
 
-      // Test if directory exist
-        // exit if exist
-        // else if existing repo : clone + backup default branch
         // else create directory & init & first commit
 
         // add remote pb-core
