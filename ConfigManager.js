@@ -11,6 +11,7 @@ ConfigManager.prototype = {
   constructor: ConfigManager,
   configFile: 'pb-config.json',
   options: {
+    repository: '',
     branch: 'master',
   },
 
@@ -21,7 +22,7 @@ ConfigManager.prototype = {
   /**
    * Merge the given options into this.options
    */
-  _mergeOptions: function(options) {
+  mergeOptions: function(options) {
     extend(this.options, options);
   },
 
@@ -55,7 +56,7 @@ ConfigManager.prototype = {
         var userOptions;
         try {
           userOptions = require(filePath);
-          this._mergeOptions(userOptions);
+          this.mergeOptions(userOptions);
           done(null);
         }
         catch (err) {
@@ -91,7 +92,7 @@ ConfigManager.prototype = {
 
     prompt.get(schema, function(err, userConfig) {
       if (err) {
-        console.error('\nThe config file has not been created.\n');
+        console.error('\nThe config file has not been written.\n');
         process.exit();
       }
       done(userConfig);
@@ -103,8 +104,8 @@ ConfigManager.prototype = {
    */
   _loadConfigFromPromptAndSave: function(done) {
     this._getConfigFromPrompt(function(options) {
-      this._mergeOptions(options);
-      this._saveConfigFile(done);
+      this.mergeOptions(options);
+      this.saveConfigFile(done);
     }.bind(this));
   },
 
@@ -141,7 +142,7 @@ ConfigManager.prototype = {
   /**
    * Persist current options in the config file
    */
-  _saveConfigFile: function(done) {
+  saveConfigFile: function(done) {
 
     var that = this;
     done = done || function() {};
@@ -150,7 +151,7 @@ ConfigManager.prototype = {
       if (err) {
         throw err;
       } else {
-        var configBuffer = new Buffer(JSON.stringify(that.options, null, '  '));
+        var configBuffer = new Buffer(JSON.stringify(that.options, null, '  ') + '\n');
         fs.write(fd, configBuffer, 0, configBuffer.length, null, function(err) {
           if (err) {
             throw 'Error writing config file: ' + err;
