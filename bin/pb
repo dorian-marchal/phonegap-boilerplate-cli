@@ -12,6 +12,9 @@ switch (command) {
   case 'reconfigure':
     pb.reconfigure();
     break;
+  case 'create':
+    pb.create();
+    break;
   case 'fetch':
     pb.fetch();
     break;
@@ -26,6 +29,8 @@ switch (command) {
     break;
   default:
     console.log(chalk.blue('Usage:'));
+    console.log(chalk.gray('* ' + chalk.white('pb create') +
+        ': create a new Phonegap Boilerplate project (client or server)'));
     console.log(chalk.gray('* ' + chalk.white('pb fetch') + ': fetch the pb-core remote'));
     console.log(chalk.gray('* ' + chalk.white('pb update') + ' (on the `pb-core` ' +
         'branch): pulls the changes and pushes them on `origin`'));

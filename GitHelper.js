@@ -29,7 +29,7 @@ module.exports = {
     var revParse = 'git rev-parse --abbrev-ref HEAD';
 
     exec(revParse, function(err, stdout) {
-      done(err ? null : stdout.trim());
+      done(err, stdout.trim());
     });
   },
 

@@ -2,12 +2,17 @@
 
 var fs = require('fs');
 var async = require('async');
+var extend = require('extend');
 var ConfigManager = require('./ConfigManager');
 var Git = require('./GitHelper');
 var chalk = require('chalk');
 var prompt = require('prompt');
+var execSync = require('child_process').execSync;
 prompt.message = '- ';
 prompt.delimiter = '';
+
+var defaultClientRepo = 'https://github.com/dorian-marchal/phonegap-boilerplate';
+var defaultServerRepo = 'https://github.com/dorian-marchal/phonegap-boilerplate-server';
 
 var PhonegapBoilerplate = function(workingDirectory) {
 
@@ -143,6 +148,7 @@ PhonegapBoilerplate.prototype = {
    * @param {function} done Called with a potential error in parameter
    */
   checkPath: function(path, type, done) {
+    type = type || '';
     try {
       var stats = fs.lstatSync(path);
       if ((type === 'directory' && stats.isDirectory()) ||
@@ -181,12 +187,12 @@ PhonegapBoilerplate.prototype = {
       // If in a Phonegap Boilerplate project, set default options
       that.projectType = projectType;
       if (projectType === 'client') {
-        that.config._mergeOptions({
-          repository: 'https://github.com/dorian-marchal/phonegap-boilerplate',
+        that.config.mergeOptions({
+          repository: defaultClientRepo,
         });
       } else if (projectType === 'server') {
-        that.config._mergeOptions({
-          repository: 'https://github.com/dorian-marchal/phonegap-boilerplate-server',
+        that.config.mergeOptions({
+          repository: defaultServerRepo,
         });
       }
 
@@ -206,6 +212,172 @@ PhonegapBoilerplate.prototype = {
           done();
         }
       });
+    });
+  },
+
+  /**
+   * Prompt the user for new project infos
+   */
+  createProjectPrompt: function(done) {
+
+    done = done || function() {};
+    var options = {};
+
+    prompt.get(
+      {
+        name: 'type',
+        default: 'client',
+        description: 'Type of repository (client|server):',
+        conform: function(type) {
+          return type === 'client' || type === 'server';
+        }
+      },
+      function(err, resType) {
+        if (err) {
+          return done(err);
+        }
+
+        extend(options, resType);
+
+        var schema = [
+          {
+            name: 'directoryName',
+            description: 'Directory name for the ' + resType.type + ':',
+            required: true,
+          },
+          {
+            name: 'pbRepository',
+            default: resType.type === 'client' ? defaultClientRepo : defaultServerRepo,
+            description: 'Phonegap Boilerplate repository:',
+          },
+          {
+            name: 'pbBranch',
+            default: 'master',
+            description: 'Phonegap Boilerplate branch ?',
+          },
+          {
+            name: 'existingRepository',
+            default: false,
+            type: 'boolean',
+            description: 'Clone the project from an existing ' + chalk.bold('empty') +
+                ' repository ? (if not, it will be created)',
+          },
+        ];
+
+        prompt.get(schema, function(err, resProject) {
+          if (err) {
+            return done(err);
+          }
+
+          extend(options, resProject);
+
+          if (resProject.existingRepository) {
+            prompt.get(
+              {
+                name: 'projectRepository',
+                required: true,
+                description: 'Project repository:',
+              },
+              function(err, resProjectRepo) {
+                if (err) {
+                  return done(err);
+                }
+
+                extend(options, resProjectRepo);
+
+                done(null, options);
+              }
+            );
+          } else {
+            done(null, options);
+          }
+        });
+      }
+    );
+  },
+
+  /**
+   * Create a new project
+   */
+  create: function() {
+    var that = this;
+
+    // Prompt user for project config
+    this.createProjectPrompt(function(err, projectOptions) {
+      if (err) {
+        console.log('\nProject creation aborted');
+        process.exit();
+      }
+
+      var createRepo = function() {
+        if (projectOptions.existingRepository) {
+          console.log(chalk.blue('\nCloning project repository...'));
+          Git.git('clone ' + projectOptions.projectRepository + ' ' +
+              projectOptions.directoryName);
+          process.chdir(projectOptions.directoryName);
+        } else {
+          console.log(chalk.blue('\nCreating project repository...'));
+          fs.mkdirSync(that.workingDirectory + '/' + projectOptions.directoryName);
+          process.chdir(projectOptions.directoryName);
+          Git.git('init');
+        }
+        that.setWorkingDirectory(that.workingDirectory + '/' + projectOptions.directoryName);
+      };
+
+      try {
+        // Create an empty repo for the project
+        createRepo();
+
+        console.log(chalk.blue('\nFirst commit...'));
+        Git.git('commit --allow-empty -m "First commit"');
+
+        // Backup the current branch
+        Git.getCurrentBranch(process.cwd(), function(err, defaultProjectBranch) {
+          if (err) {
+            throw err;
+          }
+
+          console.log(chalk.blue('\nAdding `pb-core` remote and branch...'));
+          Git.git('remote add pb-core "' + projectOptions.pbRepository + '"');
+          Git.git('checkout -b pb-core');
+
+          console.log(chalk.blue('\nPulling `pb-core`...'));
+          Git.git('pull --rebase pb-core ' + projectOptions.pbBranch);
+          Git.git('checkout ' + defaultProjectBranch);
+          Git.git('merge --no-ff pb-core -m "Use Phonegap Boilerplate"');
+
+          console.log(chalk.blue('\nLoading submodules...'));
+          Git.git('submodule init');
+          Git.git('submodule update');
+
+          console.log(chalk.blue('\nInstalling dev environment...'));
+          execSync('make install-dev');
+
+          console.log(chalk.blue('\nCreating config files...'));
+          // pb config
+          that.config.mergeOptions({
+            repository: projectOptions.pbRepository,
+            branch: projectOptions.pbBranch,
+          });
+
+          that.config.saveConfigFile(function() {
+            // Project config
+            var configFile;
+            if (projectOptions.type === 'client') {
+              execSync('cp www/js/config.js.default www/js/config.js');
+              configFile = 'www/js/config.js';
+            } else {
+              execSync('cp config.js.default config.js');
+              configFile = 'config.js';
+            }
+            console.log('Don\'t forget to update the config file: ' + configFile);
+          });
+        });
+      }
+      catch (err) {
+        console.log(chalk.red('Error creating the repository: '));
+        throw err;
+      }
     });
   },
 
@@ -230,7 +402,7 @@ PhonegapBoilerplate.prototype = {
     var that = this;
 
     this.loadAndCheckConfig(function() {
-      Git.getCurrentBranch(that.workingDirectory, function(branchName) {
+      Git.getCurrentBranch(that.workingDirectory, function(err, branchName) {
         // test if we are on `pb-core` branch
         if (branchName !== 'pb-core') {
           console.log(chalk.red('Error: Not on branch `pb-core`.'));
@@ -264,7 +436,6 @@ PhonegapBoilerplate.prototype = {
           default: 'Y/n',
           description: '\nEverything went well ? Push on `origin` ?',
         }];
-        //
         prompt.get(schema, function(err, res) {
           if (!res || res.push.toLowerCase() === 'n' || res.push.toLowerCase() === 'no') {
             revertAndExit();
@@ -291,7 +462,11 @@ PhonegapBoilerplate.prototype = {
 
     this.loadAndCheckConfig(function() {
 
-      Git.getCurrentBranch(that.workingDirectory, function(branchName) {
+      Git.getCurrentBranch(that.workingDirectory, function(err, branchName) {
+
+        if (err) {
+          throw err;
+        }
         var schema = [{
           name: 'merge',
           default: 'y/N',
