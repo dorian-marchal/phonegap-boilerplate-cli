@@ -7,6 +7,7 @@ var ConfigManager = require('./ConfigManager');
 var Git = require('./GitHelper');
 var chalk = require('chalk');
 var prompt = require('prompt');
+var execSync = require('child_process').execSync;
 prompt.message = '- ';
 prompt.delimiter = '';
 
@@ -344,6 +345,13 @@ PhonegapBoilerplate.prototype = {
           Git.git('checkout ' + defaultProjectBranch);
           Git.git('merge --no-ff pb-core -m "Use Phonegap Boilerplate"');
 
+          console.log(chalk.blue('Loading submodules...'));
+          Git.git('submodule init');
+          Git.git('submodule update');
+
+          console.log(chalk.blue('Installing dev environment...'));
+          execSync('make install-dev');
+
         });
       }
       catch (err) {
@@ -351,7 +359,6 @@ PhonegapBoilerplate.prototype = {
         throw err;
       }
 
-        // init & update submodule
         // make install-dev
         // duplicate config file and ask for updating them
         // create pb-config.json
