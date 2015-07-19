@@ -326,21 +326,23 @@ PhonegapBoilerplate.prototype = {
         // Create an empty repo for the project
         createRepo();
 
+        console.log(chalk.blue('First commit...'));
+        Git.git('commit --allow-empty -m "First commit"');
+
         // Backup the current branch
         Git.getCurrentBranch(process.cwd(), function(err, defaultProjectBranch) {
           if (err) {
             throw err;
           }
 
-          console.log(chalk.blue('First commit...'));
-          Git.git('commit --allow-empty -m "First commit"');
-
           console.log(chalk.blue('Adding `pb-core` remote and branch...'));
           Git.git('remote add pb-core "' + projectOptions.pbRepository + '"');
           Git.git('checkout -b pb-core');
 
           console.log(chalk.blue('Pulling `pb-core`...'));
-          Git.git('pull pb-core ' + projectOptions.pbBranch);
+          Git.git('pull --rebase pb-core ' + projectOptions.pbBranch);
+          Git.git('checkout ' + defaultProjectBranch);
+          Git.git('merge --no-ff pb-core -m "Use Phonegap Boilerplate"');
 
         });
       }
@@ -349,10 +351,6 @@ PhonegapBoilerplate.prototype = {
         throw err;
       }
 
-        // add remote pb-core
-        // create branch pb-core
-        // pull <remote>/<branch> in pb-core
-        // merge pb-core in master
         // init & update submodule
         // make install-dev
         // duplicate config file and ask for updating them
@@ -381,7 +379,7 @@ PhonegapBoilerplate.prototype = {
     var that = this;
 
     this.loadAndCheckConfig(function() {
-      Git.getCurrentBranch(that.workingDirectory, function(branchName) {
+      Git.getCurrentBranch(that.workingDirectory, function(err, branchName) {
         // test if we are on `pb-core` branch
         if (branchName !== 'pb-core') {
           console.log(chalk.red('Error: Not on branch `pb-core`.'));
@@ -442,7 +440,11 @@ PhonegapBoilerplate.prototype = {
 
     this.loadAndCheckConfig(function() {
 
-      Git.getCurrentBranch(that.workingDirectory, function(branchName) {
+      Git.getCurrentBranch(that.workingDirectory, function(err, branchName) {
+
+        if (err) {
+          throw err;
+        }
         var schema = [{
           name: 'merge',
           default: 'y/N',
