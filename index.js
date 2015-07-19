@@ -332,8 +332,15 @@ PhonegapBoilerplate.prototype = {
             throw err;
           }
 
-          // First commit
+          console.log(chalk.blue('First commit...'));
           Git.git('commit --allow-empty -m "First commit"');
+
+          console.log(chalk.blue('Adding `pb-core` remote and branch...'));
+          Git.git('remote add pb-core "' + projectOptions.pbRepository + '"');
+          Git.git('checkout -b pb-core');
+
+          console.log(chalk.blue('Pulling `pb-core`...'));
+          Git.git('pull pb-core ' + projectOptions.pbBranch);
 
         });
       }
@@ -341,8 +348,6 @@ PhonegapBoilerplate.prototype = {
         console.log(chalk.red('Error creating the repository: '));
         throw err;
       }
-
-        // else create directory & init & first commit
 
         // add remote pb-core
         // create branch pb-core
