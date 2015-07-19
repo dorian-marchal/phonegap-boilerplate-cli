@@ -187,11 +187,11 @@ PhonegapBoilerplate.prototype = {
       // If in a Phonegap Boilerplate project, set default options
       that.projectType = projectType;
       if (projectType === 'client') {
-        that.config._mergeOptions({
+        that.config.mergeOptions({
           repository: defaultClientRepo,
         });
       } else if (projectType === 'server') {
-        that.config._mergeOptions({
+        that.config.mergeOptions({
           repository: defaultServerRepo,
         });
       }
@@ -311,23 +311,24 @@ PhonegapBoilerplate.prototype = {
 
       var createRepo = function() {
         if (projectOptions.existingRepository) {
-          console.log(chalk.blue('Cloning project repository...'));
+          console.log(chalk.blue('\nCloning project repository...'));
           Git.git('clone ' + projectOptions.projectRepository + ' ' +
               projectOptions.directoryName);
           process.chdir(projectOptions.directoryName);
         } else {
-          console.log(chalk.blue('Creating project repository...'));
+          console.log(chalk.blue('\nCreating project repository...'));
           fs.mkdirSync(that.workingDirectory + '/' + projectOptions.directoryName);
           process.chdir(projectOptions.directoryName);
           Git.git('init');
         }
+        that.setWorkingDirectory(that.workingDirectory + '/' + projectOptions.directoryName);
       };
 
       try {
         // Create an empty repo for the project
         createRepo();
 
-        console.log(chalk.blue('First commit...'));
+        console.log(chalk.blue('\nFirst commit...'));
         Git.git('commit --allow-empty -m "First commit"');
 
         // Backup the current branch
@@ -336,32 +337,47 @@ PhonegapBoilerplate.prototype = {
             throw err;
           }
 
-          console.log(chalk.blue('Adding `pb-core` remote and branch...'));
+          console.log(chalk.blue('\nAdding `pb-core` remote and branch...'));
           Git.git('remote add pb-core "' + projectOptions.pbRepository + '"');
           Git.git('checkout -b pb-core');
 
-          console.log(chalk.blue('Pulling `pb-core`...'));
+          console.log(chalk.blue('\nPulling `pb-core`...'));
           Git.git('pull --rebase pb-core ' + projectOptions.pbBranch);
           Git.git('checkout ' + defaultProjectBranch);
           Git.git('merge --no-ff pb-core -m "Use Phonegap Boilerplate"');
 
-          console.log(chalk.blue('Loading submodules...'));
+          console.log(chalk.blue('\nLoading submodules...'));
           Git.git('submodule init');
           Git.git('submodule update');
 
-          console.log(chalk.blue('Installing dev environment...'));
+          console.log(chalk.blue('\nInstalling dev environment...'));
           execSync('make install-dev');
 
+          console.log(chalk.blue('\nCreating config files...'));
+          // pb config
+          that.config.mergeOptions({
+            repository: projectOptions.pbRepository,
+            branch: projectOptions.pbBranch,
+          });
+
+          that.config.saveConfigFile(function() {
+            // Project config
+            var configFile;
+            if (projectOptions.type === 'client') {
+              execSync('cp www/js/config.js.default www/js/config.js');
+              configFile = 'www/js/config.js';
+            } else {
+              execSync('cp config.js.default config.js');
+              configFile = 'config.js';
+            }
+            console.log('Don\'t forget to update the config file: ' + configFile);
+          });
         });
       }
       catch (err) {
         console.log(chalk.red('Error creating the repository: '));
         throw err;
       }
-
-        // make install-dev
-        // duplicate config file and ask for updating them
-        // create pb-config.json
     });
   },
 
@@ -420,7 +436,6 @@ PhonegapBoilerplate.prototype = {
           default: 'Y/n',
           description: '\nEverything went well ? Push on `origin` ?',
         }];
-        //
         prompt.get(schema, function(err, res) {
           if (!res || res.push.toLowerCase() === 'n' || res.push.toLowerCase() === 'no') {
             revertAndExit();
