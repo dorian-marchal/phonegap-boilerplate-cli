@@ -2,8 +2,11 @@
 'use strict';
 
 var chalk = require('chalk');
-var argv = require('minimist')(process.argv.slice(2));
-var command = argv._[0];
+var argv = process.argv.slice(2);
+
+// https://regex101.com/r/qU0tF9/1
+var arg = argv[0];
+var command = arg ? arg.replace(/-*(.+)/, '$1') : null;
 
 var PhonegapBoilerplate = require('../index.js');
 var pb = new PhonegapBoilerplate(process.cwd());
@@ -27,8 +30,11 @@ switch (command) {
   case 'push':
     pb.push();
     break;
+  case 'version':
+    console.log(pb.getVersion());
+    break;
   default:
-    console.log(chalk.blue('Usage:'));
+    console.log(chalk.blue('Phonegap Boilerplate (v' + pb.getVersion() + '), usage:'));
     console.log(chalk.gray('* ' + chalk.white('pb create') +
         ': create a new Phonegap Boilerplate project (client or server)'));
     console.log(chalk.gray('* ' + chalk.white('pb fetch') + ': fetch the pb-core remote'));
@@ -39,5 +45,6 @@ switch (command) {
     console.log(chalk.gray('* ' + chalk.white('pb push') + ' (on the `pb-core` branch): ' +
         'pushes the changes on `origin/pb-core` and `pb-core/dev`'));
     console.log(chalk.gray('* ' + chalk.white('pb reconfigure') + ': edit the pb configuration'));
+    console.log(chalk.gray('* ' + chalk.white('pb version') + ': output the version number'));
     break;
 }
