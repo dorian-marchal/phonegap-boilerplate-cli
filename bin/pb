@@ -2,8 +2,11 @@
 'use strict';
 
 var chalk = require('chalk');
-var argv = require('minimist')(process.argv.slice(2));
-var command = argv._[0];
+var argv = process.argv.slice(2);
+
+// https://regex101.com/r/qU0tF9/1
+var arg = argv[0];
+var command = arg ? arg.replace(/-*(.+)/, '$1') : null;
 
 var PhonegapBoilerplate = require('../index.js');
 var pb = new PhonegapBoilerplate(process.cwd());
