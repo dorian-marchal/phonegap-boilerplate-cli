@@ -26,6 +26,7 @@ switch (command) {
     break;
   case 'push':
     pb.push();
+    break;
   case 'version':
     console.log(pb.getVersion());
     break;
