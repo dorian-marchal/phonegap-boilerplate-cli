@@ -510,6 +510,14 @@ PhonegapBoilerplate.prototype = {
   reconfigure: function() {
     this.config.reconfigure();
   },
+
+  /**
+   * Return the version number
+   */
+  getVersion: function() {
+    var packageData = require('./package.json');
+    return packageData.version;
+  },
 };
 
 module.exports = PhonegapBoilerplate;
