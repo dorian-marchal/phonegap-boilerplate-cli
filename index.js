@@ -350,8 +350,8 @@ PhonegapBoilerplate.prototype = {
           Git.git('submodule init');
           Git.git('submodule update');
 
-          console.log(chalk.blue('\nInstalling dev environment...'));
-          execSync('make install-dev');
+          console.log(chalk.blue('\nInstalling environment...'));
+          execSync('make install');
 
           console.log(chalk.blue('\nCreating config files...'));
           // pb config
